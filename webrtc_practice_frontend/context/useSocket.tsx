@@ -5,24 +5,17 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { io, Socket } from "socket.io-client";
 
-
-
-
-
 interface SocketContextType {
-  socket: Socket
+  socket: Socket;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-
-  const socket = useMemo(() => io("http://localhost:8000"), [])
+  const socket = useMemo(() => io("http://10.81.100.28:5000"), []);
 
   return (
-    <SocketContext.Provider
-      value={{ socket }}
-    >
+    <SocketContext.Provider value={{ socket }}>
       {children}
     </SocketContext.Provider>
   );
