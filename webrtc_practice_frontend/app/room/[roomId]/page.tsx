@@ -1,15 +1,16 @@
 
 "use client"
 
-import { Button } from "@/components/ui/button"
+import CallControls from "@/components/CallControls"
 import { usePeer } from "@/context/usePeerContext"
 import { useSocket } from "@/context/useSocket"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, useRef } from "react"
 
 const page = () => {
     const { roomId } = useParams()
     const searchParams = useSearchParams()
+    const router = useRouter()
     const email = searchParams.get("email")
 
     const { socket } = useSocket()
@@ -108,6 +109,20 @@ const page = () => {
             console.error("Error getting user media", error)
         }
     }, [])
+
+    const handleEndCall = useCallback(() => {
+        if (myStream) {
+            myStream.getTracks().forEach(track => track.stop())
+            setMyStream(null)
+        }
+        if (remoteStream) {
+            remoteStream.getTracks().forEach(track => track.stop())
+            setRemoteStream(null)
+        }
+        setIsCallActive(false)
+        setRemoteEmailId('')
+        router.push('/')
+    }, [myStream, remoteStream, router])
 
     const handleNegotiationNeeded = useCallback(async () => {
         if (!peer) return
@@ -209,13 +224,11 @@ const page = () => {
                     </div>
                 </header>
 
-                <div className="">
-                    <Button onClick={() => sendStream(myStream as any)}>
-                        send my video
-                    </Button>
+                <div className="flex items-center justify-center gap-4">
+                    <CallControls stream={myStream} onEndCall={handleEndCall} />
                 </div>
-                <div className="">
-                    <h4>You are connected to : {remoteEmailId}</h4>
+                <div className="text-center">
+                    <h4 className="text-slate-400">You are connected to : {remoteEmailId || "Waiting for participant..."}</h4>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -232,7 +245,7 @@ const page = () => {
                                 ref={myVideoRef}
                                 autoPlay
                                 playsInline
-                                // muted
+                                muted
                                 className="w-full aspect-video object-cover bg-black"
                             />
                         </div>
